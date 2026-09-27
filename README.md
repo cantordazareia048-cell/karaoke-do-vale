@@ -18,11 +18,11 @@ YOUTUBE_API_KEY=
 APP_URL=https://seu-dominio.com
 ```
 
-Sem `YOUTUBE_API_KEY`, o MVP usa um catálogo demonstrativo para permitir validar o fluxo de sala e fila. Com a chave configurada, a busca usa o YouTube Data API v3 somente no backend.
+Com `YOUTUBE_API_KEY`, a busca usa o YouTube Data API v3 somente no backend e acrescenta `karaokê` à pesquisa para priorizar vídeos com playback/letra e thumbnails reais. Sem a chave, a tela informa que a busca precisa ser configurada em vez de exibir músicas falsas.
 
 ## Observações do MVP
 
-- As salas e filas são mantidas em memória no servidor para validação rápida do fluxo nesta primeira versão.
+- As salas, participantes e filas são persistidas na tabela `karaokeRooms`, evitando que o QR Code perca a sala quando o servidor reinicia ou troca de instância.
 - TV e celulares sincronizam o estado via consultas curtas, sem download ou armazenamento de vídeos.
-- A TV incorpora vídeos elegíveis usando o player oficial do YouTube; itens demonstrativos exibem uma tela de palco até uma chave real ser conectada.
-- O próximo passo de produção é trocar o store em memória por PostgreSQL/MySQL e mover a sincronização para WebSocket autenticado.
+- A TV incorpora vídeos reais e embeddable usando o player oficial do YouTube. O vídeo selecionado fica no palco da TV depois de adicionado à fila; a letra depende do próprio vídeo de karaokê escolhido.
+- O próximo passo de produção é mover a sincronização curta para WebSocket autenticado.
