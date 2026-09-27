@@ -4,7 +4,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
-import { addSong, closeRoom, controlRoom, createRoom, getRoom, joinRoom, rateSong, removeSong, searchYouTube, sendReaction } from "./karaoke";
+import { addComment, addSong, closeRoom, controlRoom, createRoom, getRoom, joinRoom, rateSong, removeSong, searchYouTube, sendReaction } from "./karaoke";
 
 const roomCode = z.string().trim().min(5).max(8);
 async function safe<T>(action: () => Promise<T>): Promise<T> { try { return await action(); } catch (error) { throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Operação inválida" }); } }
@@ -24,6 +24,7 @@ export const appRouter = router({
     removeSong: publicProcedure.input(z.object({ code: roomCode, songId: z.string().min(1) })).mutation(({ input }) => safe(() => removeSong(input.code, input.songId))),
     reaction: publicProcedure.input(z.object({ code: roomCode, emoji: z.enum(["❤️", "🔥", "🎉", "👏"]), from: z.string().trim().min(1).max(32) })).mutation(({ input }) => safe(() => sendReaction(input.code, input.emoji, input.from))),
     rate: publicProcedure.input(z.object({ code: roomCode, songId: z.string().min(1), value: z.number().int().min(1).max(5), from: z.string().trim().min(1).max(32) })).mutation(({ input }) => safe(() => rateSong(input.code, input.songId, input.value, input.from))),
+    comment: publicProcedure.input(z.object({ code: roomCode, songId: z.string().min(1), text: z.string().trim().min(1).max(180), from: z.string().trim().min(1).max(32) })).mutation(({ input }) => safe(() => addComment(input.code, input.songId, input.text, input.from))),
     control: publicProcedure.input(z.object({ code: roomCode, action: z.enum(["play", "pause", "next", "previous", "volume"]), volume: z.number().optional() })).mutation(({ input }) => safe(() => controlRoom(input.code, input.action, input.volume))),
     closeRoom: publicProcedure.input(z.object({ code: roomCode })).mutation(({ input }) => safe(() => closeRoom(input.code))),
   }),

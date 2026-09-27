@@ -1,0 +1,13 @@
+{
+  "name": "Karaokê do Vale",
+  "short_name": "Karaokê do Vale",
+  "description": "Controle o karaokê da sua festa pelo celular.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080611",
+  "theme_color": "#080611",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/manus-storage/karaoke-do-vale-logo_9223093e.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

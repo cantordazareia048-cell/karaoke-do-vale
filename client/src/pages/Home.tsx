@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Music2, QrCode, Smartphone, Sparkles, Tv2 } from "lucide-react";
+import { ArrowRight, Check, Music2, QrCode, Smartphone, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 
 const highlights = [
@@ -17,13 +17,7 @@ export default function Home() {
       <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col px-5 py-5 sm:px-8 lg:px-12">
         <header className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-[#b67cff] to-[#ec3bbd] shadow-[0_0_26px_rgba(214,89,255,.35)]">
-              <Music2 className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <div className="text-sm font-black tracking-[.24em] text-white">KARAOKÊ</div>
-              <div className="-mt-1 text-lg font-black tracking-[.12em] text-[#d7beff]">DO VALE</div>
-            </div>
+<img src="/manus-storage/karaoke-do-vale-logo_9223093e.png" alt="Karaokê do Vale" className="h-20 w-48 object-contain object-left" />
           </Link>
           <div className="hidden rounded-full border border-white/10 bg-white/[.04] px-4 py-2 text-xs font-semibold text-white/60 sm:block">
             100% web • sem instalação
@@ -43,13 +37,11 @@ export default function Home() {
             <p className="mt-7 max-w-xl text-lg leading-8 text-white/58 sm:text-xl">
               O karaokê da sua festa, direto no navegador. A TV vira o palco e cada celular vira um controle remoto.
             </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Link href="/tv" className="group inline-flex h-14 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#8e5cff] to-[#e83cc1] px-6 text-sm font-black uppercase tracking-[.08em] shadow-[0_14px_40px_rgba(190,73,255,.28)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_50px_rgba(190,73,255,.38)] active:scale-[.98]">
-                <Tv2 className="h-5 w-5" /> Abrir na TV <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+            <div className="mt-9">
+              <Link href="/tv" className="group inline-flex h-14 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#8e5cff] to-[#e83cc1] px-7 text-sm font-black uppercase tracking-[.08em] shadow-[0_14px_40px_rgba(190,73,255,.28)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_50px_rgba(190,73,255,.38)] active:scale-[.98]">
+                Criar minha sala <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
               </Link>
-              <Link href="/tv" className="inline-flex h-14 items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/[.05] px-6 text-sm font-black uppercase tracking-[.08em] text-white/80 transition hover:border-white/25 hover:bg-white/[.09] active:scale-[.98]">
-                <Smartphone className="h-5 w-5 text-[#cfb3ff]" /> Ver como funciona
-              </Link>
+              <div className="mt-3 text-xs text-white/35">A TV cria a sala e mostra o QR Code para todo mundo entrar.</div>
             </div>
             <div className="mt-9 grid gap-3 text-sm text-white/60 sm:grid-cols-3">
               {highlights.map((highlight) => <div key={highlight} className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#cf83ff]" />{highlight}</div>)}

@@ -13,6 +13,7 @@ function formatCreatedAt(timestamp?: number) {
 
 export default function TV() {
   const [code, setCode] = useState("");
+  const [showOverlay, setShowOverlay] = useState(true);
   const createRoom = trpc.karaoke.createRoom.useMutation({ onSuccess: (room) => setCode(room.code) });
   const roomQuery = trpc.karaoke.getRoom.useQuery({ code }, { enabled: Boolean(code), refetchInterval: 1200, retry: false });
   const control = trpc.karaoke.control.useMutation({ onSuccess: () => roomQuery.refetch() });
@@ -29,6 +30,13 @@ export default function TV() {
   const progress = useMemo(() => current ? 38 : 0, [current]);
   const cinema = Boolean(current && (room?.participants?.length ?? 0) > 0);
 
+  useEffect(() => {
+    setShowOverlay(true);
+    if (!current) return;
+    const timer = window.setTimeout(() => setShowOverlay(false), 5000);
+    return () => window.clearTimeout(timer);
+  }, [current?.videoId]);
+
   const sendControl = (action: "play" | "pause" | "next" | "previous") => {
     if (code) control.mutate({ code, action });
   };
@@ -43,7 +51,7 @@ export default function TV() {
       <div className="pointer-events-none fixed inset-0 z-40 overflow-hidden">{room.reactions.slice(0, 8).map((reaction, index) => <div key={`${reaction.at}-${index}`} className="reaction-float absolute text-4xl drop-shadow-[0_0_18px_rgba(255,145,220,.8)]" style={{ right: `${10 + (index * 13) % 78}%`, animationDelay: `${index * 120}ms` }}>{reaction.emoji}</div>)}</div>
       <div className={`${cinema ? "relative flex min-h-screen w-full flex-col" : "relative mx-auto flex min-h-screen max-w-[1600px] flex-col px-6 py-5 xl:px-10"}`}>
         <header className={`${cinema ? "hidden" : "flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5"}`}>
-          <Link href="/" className="flex items-center gap-3"><div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-[#a071ff] to-[#ee43c2] shadow-[0_0_28px_rgba(210,83,255,.34)]"><Music2 className="h-5 w-5" /></div><div><div className="text-xs font-black tracking-[.25em] text-white/70">KARAOKÊ</div><div className="-mt-1 text-lg font-black tracking-[.13em]">DO VALE</div></div></Link>
+          <Link href="/" className="flex items-center gap-3"><img src="/manus-storage/karaoke-do-vale-logo_9223093e.png" alt="Karaokê do Vale" className="h-20 w-52 object-contain object-left" /></Link>
           <div className="flex items-center gap-3"><div className="hidden items-center gap-2 rounded-full border border-emerald-300/15 bg-emerald-300/10 px-3 py-2 text-xs font-bold text-emerald-200 sm:flex"><span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_9px_#6ee7b7]" /> TV conectada</div><div className="rounded-2xl border border-white/10 bg-white/[.04] px-4 py-2 text-right"><div className="text-[10px] font-bold uppercase tracking-[.18em] text-white/35">Sala</div><div className="text-xl font-black tracking-[.22em] text-[#e4cfff]">{room.code}</div></div></div>
         </header>
 
@@ -52,7 +60,7 @@ export default function TV() {
             <div className={`${cinema ? "relative flex min-h-screen flex-1 flex-col justify-end overflow-hidden bg-black" : "relative flex flex-1 flex-col justify-end overflow-hidden rounded-[30px] border border-white/10 bg-[#100c20] shadow-2xl shadow-[#24104e]/40"}`}>
               <div className="absolute inset-0 opacity-80 [background:radial-gradient(circle_at_50%_28%,rgba(161,88,255,.26),transparent_26%),linear-gradient(135deg,rgba(108,74,255,.13),transparent_42%),linear-gradient(315deg,rgba(242,51,190,.13),transparent_40%)]" />
               {current ? <iframe className="absolute inset-0 h-full w-full border-0" src={`https://www.youtube.com/embed/${current.videoId}?autoplay=1&controls=1&rel=0`} title={current.title} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen /> : <div className="relative flex flex-1 flex-col items-center justify-center px-8 text-center"><div className="mb-6 grid h-28 w-28 place-items-center rounded-[34px] border border-white/10 bg-white/[.06] shadow-[0_0_70px_rgba(167,99,255,.28)]"><Music2 className="h-14 w-14 text-[#d2adff]" /></div><div className="text-xs font-black uppercase tracking-[.35em] text-[#bc9aff]">sua festa começa aqui</div><div className="mt-4 max-w-xl text-4xl font-black tracking-[-.04em] sm:text-6xl">Escolha uma música no celular</div><div className="mt-3 text-base text-white/45">{room.participants.length === 0 ? "Escaneie o QR Code para entrar na sala" : "Escolha uma música no celular"}</div></div>}
-              {(room.participants.length === 0 || current) && <div className="relative z-10 border-t border-white/10 bg-[#090712]/80 p-5 backdrop-blur-md sm:p-6">
+              {(room.participants.length === 0 || current) && <div onMouseMove={() => setShowOverlay(true)} className={`relative z-10 border-t border-white/10 bg-[#090712]/80 p-5 backdrop-blur-md transition-opacity duration-700 sm:p-6 ${cinema && !showOverlay ? "pointer-events-none opacity-0" : "opacity-100"}`}>
                 <div className="flex flex-wrap items-end justify-between gap-4"><div><div className="text-xs font-black uppercase tracking-[.2em] text-[#bb9bff]">{current ? "Tocando agora" : "Fila em espera"}</div><div className="mt-2 text-2xl font-black sm:text-3xl">{current?.title ?? "A fila está vazia"}</div><div className="mt-1 text-sm text-white/45">{current ? `${current.channel} • adicionado por ${current.addedBy}` : "Escolha uma música para começar o show"}</div></div><div className="rounded-full border border-white/10 bg-white/[.05] px-3 py-1.5 text-xs text-white/55">{current ? current.duration : "ao vivo"}</div></div>
                 <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-[#8f63ff] via-[#db52e8] to-[#ff75bd] transition-all" style={{ width: `${progress}%` }} /></div>
                 <div className="mt-4 flex items-center justify-between"><div className="flex items-center gap-2"><Button onClick={() => sendControl("previous")} variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-white/65 hover:bg-white/10 hover:text-white"><SkipBack className="h-5 w-5" /></Button><Button onClick={() => sendControl(room.isPlaying ? "pause" : "play")} size="icon" className="h-12 w-12 rounded-2xl bg-white text-[#160d29] shadow-lg shadow-white/10 hover:bg-[#eadcff]">{room.isPlaying ? <Pause className="h-5 w-5 fill-current" /> : <Play className="h-5 w-5 fill-current" />}</Button><Button onClick={() => sendControl("next")} variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-white/65 hover:bg-white/10 hover:text-white"><SkipForward className="h-5 w-5" /></Button></div><div className="flex items-center gap-2 text-xs text-white/40"><Volume2 className="h-4 w-4" /> {room.volume}%</div></div>
