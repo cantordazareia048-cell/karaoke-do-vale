@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Music2, QrCode, Smartphone, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Heart, Music2, QrCode, Smartphone, Sparkles, Trophy } from "lucide-react";
 import { Link } from "wouter";
 
 const highlights = [
@@ -29,14 +29,14 @@ export default function Home() {
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#d781ff]/20 bg-[#ac69ff]/10 px-3 py-2 text-xs font-bold uppercase tracking-[.18em] text-[#d8b8ff]">
               <Sparkles className="h-3.5 w-3.5 text-[#ff73d6]" /> A festa começa aqui
             </div>
-            <h1 className="max-w-2xl text-5xl font-black leading-[.98] tracking-[-.06em] text-white sm:text-7xl">
-              Sua voz.
-              <br /> Sua galera.
-              <br /><span className="bg-gradient-to-r from-[#d2a9ff] via-[#ff74d5] to-[#8ca9ff] bg-clip-text text-transparent">Seu palco.</span>
+            <h1 className="max-w-2xl text-5xl font-black leading-[.92] tracking-[-.06em] text-white sm:text-7xl">
+              A festa é
+              <br /><span className="bg-gradient-to-r from-[#d2a9ff] via-[#ff74d5] to-[#8ca9ff] bg-clip-text text-transparent">da galera.</span>
             </h1>
             <p className="mt-7 max-w-xl text-lg leading-8 text-white/58 sm:text-xl">
-              O karaokê da sua festa, direto no navegador. A TV vira o palco e cada celular vira um controle remoto.
+              Crie sua sala, mostre o QR Code e deixe todo mundo escolher, votar e reagir às apresentações.
             </p>
+            <div className="mt-7 grid max-w-xl gap-3 sm:grid-cols-3"><HomeFeature icon={<Music2 />} title="Cante" text="Escolha músicas reais" /><HomeFeature icon={<Heart />} title="Reaja" text="Aplauda ao vivo" /><HomeFeature icon={<Trophy />} title="Vote" text="Veja o ranking" /></div>
             <div className="mt-9">
               <Link href="/tv" className="group inline-flex h-14 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#8e5cff] to-[#e83cc1] px-7 text-sm font-black uppercase tracking-[.08em] shadow-[0_14px_40px_rgba(190,73,255,.28)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_50px_rgba(190,73,255,.38)] active:scale-[.98]">
                 Criar minha sala <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
@@ -71,4 +71,9 @@ export default function Home() {
       </div>
     </main>
   );
+  }
+
+
+function HomeFeature({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) {
+  return <div className="rounded-2xl border border-white/10 bg-white/[.05] p-3 transition hover:border-fuchsia-300/30 hover:bg-white/[.08]"><div className="flex items-center gap-2 text-sm font-black">{icon}<span>{title}</span></div><div className="mt-1 text-xs text-white/40">{text}</div></div>;
 }
