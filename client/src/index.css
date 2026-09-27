@@ -21,4 +21,12 @@ button:active { transform: scale(.98); }
 
 @media (prefers-reduced-motion: no-preference) {
   .animate-pulse { animation-duration: 2.4s; }
+  .reaction-float { animation: reaction-float 3.2s cubic-bezier(.23,1,.32,1) forwards; bottom: -4rem; }
+}
+
+@keyframes reaction-float {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) scale(.75) rotate(-8deg); }
+  12% { opacity: 1; }
+  72% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(0, -78vh, 0) scale(1.15) rotate(8deg); }
 }
