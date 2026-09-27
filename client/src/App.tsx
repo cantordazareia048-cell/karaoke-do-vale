@@ -7,10 +7,11 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import TV from "./pages/TV";
 import Join from "./pages/Join";
-import Room from "./pages/Room";
+import Room from "@/pages/Room";
+import Admin from "@/pages/Admin";
 
 function Router() {
-  return <Switch><Route path="/" component={Home} /><Route path="/tv" component={TV} /><Route path="/TV" component={TV} /><Route path="/join/:code" component={Join} /><Route path="/room/:code" component={Room} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>;
+  return <Switch><Route path="/" component={Home} /><Route path="/tv" component={TV} /><Route path="/TV" component={TV} /><Route path="/join/:code" component={Join} /><Route path="/room/:code" component={Room} /><Route path="/admin" component={Admin} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>;
 }
 
 export default function App() {

@@ -4,6 +4,8 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
+import { adminProcedure } from "./_core/trpc";
+import { getAdminOverview } from "./admin";
 import { addComment, addSong, closeRoom, controlRoom, createRoom, getRoom, joinRoom, rateSong, removeSong, searchYouTube, sendReaction } from "./karaoke";
 
 const roomCode = z.string().trim().min(5).max(8);
@@ -11,6 +13,9 @@ async function safe<T>(action: () => Promise<T>): Promise<T> { try { return awai
 
 export const appRouter = router({
   system: systemRouter,
+  admin: router({
+    overview: adminProcedure.query(() => getAdminOverview()),
+  }),
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => { const cookieOptions = getSessionCookieOptions(ctx.req); ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 }); return { success: true } as const; }),
