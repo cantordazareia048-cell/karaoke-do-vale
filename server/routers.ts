@@ -4,8 +4,9 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
-import { adminProcedure } from "./_core/trpc";
+import { adminProcedure, adminSessionProcedure } from "./_core/trpc";
 import { getAdminOverview } from "./admin";
+import { billingEnabled, clearAdminSessionCookie, createAdminSession, getAdminTokenFromRequest, getAdminUsername, setAdminSessionCookie, validateAdminCredentials } from "./adminAuth";
 import { addComment, addSong, closeRoom, controlRoom, createRoom, getRoom, joinRoom, rateSong, removeSong, searchYouTube, sendReaction } from "./karaoke";
 
 const roomCode = z.string().trim().min(5).max(8);
@@ -14,7 +15,15 @@ async function safe<T>(action: () => Promise<T>): Promise<T> { try { return awai
 export const appRouter = router({
   system: systemRouter,
   admin: router({
-    overview: adminProcedure.query(() => getAdminOverview()),
+    session: publicProcedure.query(({ ctx }) => ({ authenticated: Boolean(getAdminUsername(getAdminTokenFromRequest(ctx.req))) })),
+    login: publicProcedure.input(z.object({ username: z.string().trim().min(1).max(80), password: z.string().min(1).max(120) })).mutation(({ ctx, input }) => {
+      if (!validateAdminCredentials(input.username, input.password)) throw new TRPCError({ code: "UNAUTHORIZED", message: "Usuário ou senha inválidos" });
+      setAdminSessionCookie(ctx.res, createAdminSession(input.username));
+      return { success: true } as const;
+    }),
+    logout: publicProcedure.mutation(({ ctx }) => { clearAdminSessionCookie(ctx.res); return { success: true } as const; }),
+    overview: adminSessionProcedure.query(() => getAdminOverview()),
+    settings: adminSessionProcedure.query(() => ({ billingEnabled: billingEnabled(), pixConfigured: Boolean(process.env.PIX_API_KEY) })),
   }),
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),

@@ -21,6 +21,6 @@ const userContext: TrpcContext = {
 describe("admin.overview", () => {
   it("rejects a regular user", async () => {
     const caller = appRouter.createCaller(userContext);
-    await expect(caller.admin.overview()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.admin.overview()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });
