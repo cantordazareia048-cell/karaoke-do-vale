@@ -5,7 +5,7 @@ import { getDb } from "./db";
 
 type Song = { id: string; videoId: string; title: string; channel: string; thumbnail: string; duration: string; addedBy: string };
 type Participant = { id: string; name: string; role: "admin" | "participant"; joinedAt: number };
-type RoomState = { participants: Participant[]; queue: Song[]; nowPlaying: Song | null; history: Song[]; isPlaying: boolean; volume: number };
+type RoomState = { participants: Participant[]; queue: Song[]; nowPlaying: Song | null; history: Song[]; lastFinished: Song | null; reactions: Array<{ emoji: string; from: string; at: number }>; ratings: Array<{ songId: string; value: number; from: string }>; isPlaying: boolean; volume: number };
 type Room = { id: string; code: string; hostToken: string; status: "active" | "closed"; createdAt: number; updatedAt: number } & RoomState;
 
 const fallbackRooms = new Map<string, Room>();
@@ -17,13 +17,13 @@ function newCode() {
   do code = Array.from({ length: 5 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join(""); while (fallbackRooms.has(code));
   return code;
 }
-function emptyState(): RoomState { return { participants: [], queue: [], nowPlaying: null, history: [], isPlaying: false, volume: 76 }; }
+function emptyState(): RoomState { return { participants: [], queue: [], nowPlaying: null, history: [], lastFinished: null, reactions: [], ratings: [], isPlaying: false, volume: 76 }; }
 function advance(room: Room) { if (!room.nowPlaying && room.queue.length > 0) { room.nowPlaying = room.queue.shift() ?? null; room.isPlaying = Boolean(room.nowPlaying); } }
-function snapshot(room: Room) { return { id: room.id, code: room.code, hostToken: room.hostToken, status: room.status, createdAt: room.createdAt, updatedAt: room.updatedAt, participants: room.participants, queue: room.queue, nowPlaying: room.nowPlaying, isPlaying: room.isPlaying, volume: room.volume }; }
+function snapshot(room: Room) { return { id: room.id, code: room.code, hostToken: room.hostToken, status: room.status, createdAt: room.createdAt, updatedAt: room.updatedAt, participants: room.participants, queue: room.queue, nowPlaying: room.nowPlaying, lastFinished: room.lastFinished, reactions: room.reactions, ratings: room.ratings, isPlaying: room.isPlaying, volume: room.volume }; }
 async function persist(room: Room) {
   const db = await getDb();
   if (!db) { fallbackRooms.set(room.code, room); return; }
-  const state = JSON.stringify({ participants: room.participants, queue: room.queue, nowPlaying: room.nowPlaying, history: room.history, isPlaying: room.isPlaying, volume: room.volume });
+  const state = JSON.stringify({ participants: room.participants, queue: room.queue, nowPlaying: room.nowPlaying, history: room.history, lastFinished: room.lastFinished, reactions: room.reactions, ratings: room.ratings, isPlaying: room.isPlaying, volume: room.volume });
   await db.insert(karaokeRooms).values({ id: room.id, code: room.code, hostToken: room.hostToken, status: room.status, state, createdAt: new Date(room.createdAt), updatedAt: new Date(room.updatedAt) }).onDuplicateKeyUpdate({ set: { status: room.status, state, updatedAt: new Date(room.updatedAt) } });
 }
 async function loadRoom(code: string) {
@@ -48,7 +48,9 @@ export async function getRoom(code: string) { const room = await loadRoom(code);
 export async function joinRoom(code: string, name: string) { const room = await requireRoom(code); const cleanName = name.trim().slice(0, 32); if (!cleanName) throw new Error("Digite seu nome para entrar"); const participant: Participant = { id: nanoid(10), name: cleanName, role: room.participants.length === 0 ? "admin" : "participant", joinedAt: Date.now() }; room.participants.push(participant); room.updatedAt = Date.now(); await persist(room); return { participant, room: snapshot(room) }; }
 export async function addSong(code: string, song: Omit<Song, "id">) { const room = await requireRoom(code); room.queue.push({ ...song, id: nanoid(10) }); advance(room); room.updatedAt = Date.now(); await persist(room); return snapshot(room); }
 export async function removeSong(code: string, songId: string) { const room = await requireRoom(code); room.queue = room.queue.filter((song) => song.id !== songId); room.updatedAt = Date.now(); await persist(room); return snapshot(room); }
-export async function controlRoom(code: string, action: "play" | "pause" | "next" | "previous" | "volume", volume?: number) { const room = await requireRoom(code); if (action === "play") room.isPlaying = true; if (action === "pause") room.isPlaying = false; if (action === "volume") room.volume = Math.max(0, Math.min(100, Math.round(volume ?? room.volume))); if (action === "next") { if (room.nowPlaying) room.history.unshift(room.nowPlaying); room.nowPlaying = room.queue.shift() ?? null; room.isPlaying = Boolean(room.nowPlaying); } if (action === "previous") { const previous = room.history.shift(); if (previous) { if (room.nowPlaying) room.queue.unshift(room.nowPlaying); room.nowPlaying = previous; room.isPlaying = true; } } room.updatedAt = Date.now(); await persist(room); return snapshot(room); }
+export async function controlRoom(code: string, action: "play" | "pause" | "next" | "previous" | "volume", volume?: number) { const room = await requireRoom(code); if (action === "play") room.isPlaying = true; if (action === "pause") room.isPlaying = false; if (action === "volume") room.volume = Math.max(0, Math.min(100, Math.round(volume ?? room.volume))); if (action === "next") { if (room.nowPlaying) { room.history.unshift(room.nowPlaying); room.lastFinished = room.nowPlaying; } room.nowPlaying = room.queue.shift() ?? null; room.isPlaying = Boolean(room.nowPlaying); } if (action === "previous") { const previous = room.history.shift(); if (previous) { if (room.nowPlaying) room.queue.unshift(room.nowPlaying); room.nowPlaying = previous; room.isPlaying = true; } } room.updatedAt = Date.now(); await persist(room); return snapshot(room); }
+export async function sendReaction(code: string, emoji: string, from: string) { const room = await requireRoom(code); room.reactions.unshift({ emoji, from: from.slice(0, 32), at: Date.now() }); room.reactions = room.reactions.slice(0, 40); room.updatedAt = Date.now(); await persist(room); return snapshot(room); }
+export async function rateSong(code: string, songId: string, value: number, from: string) { const room = await requireRoom(code); room.ratings = room.ratings.filter((rating) => !(rating.songId === songId && rating.from === from)); room.ratings.push({ songId, value: Math.max(1, Math.min(5, Math.round(value))), from: from.slice(0, 32) }); room.updatedAt = Date.now(); await persist(room); return snapshot(room); }
 export async function closeRoom(code: string) { const room = await requireRoom(code); room.status = "closed"; room.updatedAt = Date.now(); await persist(room); return snapshot(room); }
 
 export async function searchYouTube(query: string) {

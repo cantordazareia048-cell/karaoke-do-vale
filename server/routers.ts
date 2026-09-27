@@ -4,7 +4,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
-import { addSong, closeRoom, controlRoom, createRoom, getRoom, joinRoom, removeSong, searchYouTube } from "./karaoke";
+import { addSong, closeRoom, controlRoom, createRoom, getRoom, joinRoom, rateSong, removeSong, searchYouTube, sendReaction } from "./karaoke";
 
 const roomCode = z.string().trim().min(5).max(8);
 async function safe<T>(action: () => Promise<T>): Promise<T> { try { return await action(); } catch (error) { throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Operação inválida" }); } }
@@ -22,6 +22,8 @@ export const appRouter = router({
     search: publicProcedure.input(z.object({ query: z.string().trim().min(1).max(80) })).query(({ input }) => safe(() => searchYouTube(input.query))),
     addSong: publicProcedure.input(z.object({ code: roomCode, videoId: z.string().min(1).max(120), title: z.string().min(1).max(240), channel: z.string().min(1).max(160), thumbnail: z.string().url(), duration: z.string().max(16), addedBy: z.string().min(1).max(32) })).mutation(({ input }) => safe(() => addSong(input.code, input))),
     removeSong: publicProcedure.input(z.object({ code: roomCode, songId: z.string().min(1) })).mutation(({ input }) => safe(() => removeSong(input.code, input.songId))),
+    reaction: publicProcedure.input(z.object({ code: roomCode, emoji: z.enum(["❤️", "🔥", "🎉", "👏"]), from: z.string().trim().min(1).max(32) })).mutation(({ input }) => safe(() => sendReaction(input.code, input.emoji, input.from))),
+    rate: publicProcedure.input(z.object({ code: roomCode, songId: z.string().min(1), value: z.number().int().min(1).max(5), from: z.string().trim().min(1).max(32) })).mutation(({ input }) => safe(() => rateSong(input.code, input.songId, input.value, input.from))),
     control: publicProcedure.input(z.object({ code: roomCode, action: z.enum(["play", "pause", "next", "previous", "volume"]), volume: z.number().optional() })).mutation(({ input }) => safe(() => controlRoom(input.code, input.action, input.volume))),
     closeRoom: publicProcedure.input(z.object({ code: roomCode })).mutation(({ input }) => safe(() => closeRoom(input.code))),
   }),

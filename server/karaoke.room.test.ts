@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addSong, closeRoom, createRoom, getRoom, joinRoom, searchYouTube } from "./karaoke";
+import { addSong, closeRoom, createRoom, getRoom, joinRoom, rateSong, searchYouTube, sendReaction } from "./karaoke";
 
 describe("durable karaoke rooms", () => {
   it("keeps the same room available after a join and reload", async () => {
@@ -20,6 +20,11 @@ describe("durable karaoke rooms", () => {
     expect(reloaded?.code).toBe(created.code);
     expect(reloaded?.participants[0]?.name).toBe("Teste");
     expect(reloaded?.nowPlaying?.videoId).toBe(result!.videoId);
+    await sendReaction(created.code, "❤️", joined.participant.name);
+    await rateSong(created.code, result!.videoId, 5, joined.participant.name);
+    const feedback = await getRoom(created.code);
+    expect(feedback?.reactions[0]?.emoji).toBe("❤️");
+    expect(feedback?.ratings[0]?.value).toBe(5);
     await closeRoom(created.code);
   }, 20000);
 });
